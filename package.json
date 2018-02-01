@@ -1,0 +1,78 @@
+{
+  "name": "titime",
+  "productName": "TiTime - Keeping the time for you",
+  "version": "1.0.0",
+  "description": "Tool for Instant Time Tracking",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "TITIME_DEBUG=1 electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint src --color"
+  },
+  "keywords": [
+    "Time Tracker",
+    "Activity",
+    "Time",
+    "Management",
+    "Tool",
+    "Utility",
+    "Time Utility"
+  ],
+  "author": "AlexanderC <alexander.moldova@gmial.com>",
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "squirrel"
+        ],
+        "darwin": [
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "packageManager": "npm"
+      },
+      "electronWinstallerConfig": {
+        "name": "titime"
+      },
+      "electronInstallerDebian": {},
+      "electronInstallerRedhat": {},
+      "github_repository": {
+        "owner": "AlexanderC",
+        "name": "titime"
+      },
+      "windowsStoreConfig": {
+        "packageName": "",
+        "name": "titime"
+      }
+    }
+  },
+  "dependencies": {
+    "diskdb": "^0.1.17",
+    "electron-config": "^1.0.0",
+    "electron-positioner": "^3.0.0",
+    "electron-compile": "^6.4.2",
+    "electron-devtools-installer": "^2.2.3",
+    "electron-squirrel-startup": "^1.0.0",
+    "vue": "^2.5.13"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "electron-forge": "^5.0.0",
+    "electron-prebuilt-compile": "1.7.11",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.6.1"
+  }
+}
