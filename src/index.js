@@ -1,12 +1,13 @@
 import { app, Menu, powerMonitor, dialog, Notification } from 'electron';
 import { enableLiveReload } from 'electron-compile';
 import EventEmitter from 'events';
+import { clearInterval } from 'timers';
 import desktopIdle from 'desktop-idle';
 import Window from './window';
 import Registry from './registry';
 import DB from './db';
 import Env from './env';
-import { clearInterval } from 'timers';
+import RedmineProvider from './remote/redmine';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -19,8 +20,8 @@ global.$registry = registry;
 
 if (Env.isDebug()) {
   enableLiveReload();
-  registry.config().clear();
-  registry._loadConfig();
+  // registry.config().clear();
+  // registry._loadConfig();
 }
 
 const EVENTS = {
@@ -45,6 +46,12 @@ registry
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 const mainWindow = Window.fromRegistry(registry, 'main');
+
+registry.register('synchronizeRedmine', async (host, apiKey) => {
+  const redmine = new RedmineProvider(db, { host, apiKey });
+
+  await redmine.synchronize();
+});
 
 // @ref https://electronjs.org/docs/api/dialog#dialogshowmessageboxbrowserwindow-options-callback
 registry.register('notify', async (title, message, buttons = [], cb = null) => {

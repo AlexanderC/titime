@@ -1,7 +1,7 @@
 {
   "name": "titime",
   "productName": "TiTime - Keeping the time for you",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Tool for Instant Time Tracking",
   "main": "src/index.js",
   "scripts": {
@@ -69,6 +69,8 @@
     "humanize-duration": "^3.12.1",
     "moment": "^2.20.1",
     "moment-countdown": "0.0.3",
+    "node-redmine": "^0.2.1",
+    "pify": "^3.0.0",
     "valid-url": "^1.0.9",
     "vue": "^2.5.13",
     "vue-electron": "^1.0.6",
