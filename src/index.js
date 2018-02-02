@@ -1,25 +1,38 @@
 import { app } from 'electron';
+import { enableLiveReload } from 'electron-compile';
+import EventEmitter from 'events';
 import Window from './window';
 import Registry from './registry';
 import DB from './db';
 import Env from './env';
-import { enableLiveReload } from 'electron-compile';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
 }
 
-if (Env.isDebug()) {
-  enableLiveReload();
-}
-
 // This is the global registry
 const registry = Registry.create();
+global.$registry = registry;
+
+if (Env.isDebug()) {
+  enableLiveReload();
+  registry.config().clear();
+  registry._loadConfig();
+}
 
 registry
+  .register('events', new EventEmitter())
   .register('app', app)
-  .register('db', DB.fromRegistry(registry));
+  .register('db', DB.fromRegistry(registry).connect());
+
+registry.register('openReport', async (projectId) => {
+  registry.config().set('lastReportProjectId', projectId);
+
+  const reportWindow = Window.fromRegistry(registry, 'report');
+
+  await reportWindow.ensureCreated();
+});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

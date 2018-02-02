@@ -6,4 +6,10 @@ export default {
     'topLeft', 'topRight', 'bottomLeft', 'bottomRight',
     'topCenter', 'topCenter', 'center',
   ],
+  sampleProjects: [
+    {
+      name: 'TiTime (Sample)',
+      link: 'https://github.com/AlexanderC/titime',
+    },
+  ],
 };

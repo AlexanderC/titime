@@ -13,6 +13,14 @@
       .heading-item {
         text-align: center;
       }
+
+      .side-menu {
+        width: 180px;
+      }
+
+      .side-menu .md-list-item-text {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -23,12 +31,12 @@
   import Vue from 'vue';
   import VueMaterial from 'vue-material';
   import VueElectron from 'vue-electron';
-  import App from './component/app';
+  import Report from './component/report';
 
   // Load global components
   Vue.use(VueMaterial)
   Vue.use(VueElectron);
 
-  new Vue(App).$mount('app');
+  new Vue(Report).$mount('app');
   </script>
 </html>

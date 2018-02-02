@@ -1,4 +1,5 @@
 import db from 'diskdb';
+import fs from 'fs';
 
 export default class DB {
   constructor(path, collections = [], defaultCollection = null) {
@@ -9,7 +10,7 @@ export default class DB {
   }
 
   get(name = null) {
-    return this.db[name || this.currentCollection()];
+    return this.db[name || this.getCurrentCollection()];
   }
 
   setCurrentCollection(name) {
@@ -18,7 +19,7 @@ export default class DB {
     return this;
   }
 
-  currentCollection() {
+  getCurrentCollection() {
     return this.currentCollection;
   }
 
@@ -27,6 +28,14 @@ export default class DB {
   }
 
   connect() {
+    try {
+      fs.mkdirSync(this.path);
+    } catch (error) {
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+
     this.db = db.connect(this.path, this.collections);
 
     return this;

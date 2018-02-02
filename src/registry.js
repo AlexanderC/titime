@@ -1,5 +1,5 @@
-import Repository from './config/repository';
 import Config from 'electron-config';
+import Repository from './config/repository';
 
 export default class Registry {
   constructor(...repositories) {
