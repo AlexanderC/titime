@@ -10,7 +10,12 @@
     
     <br/>
     <div class="md-layout">
-      <div class="md-layout-item chart-container"></div>
+      <div v-if="hasDataToShow()" class="md-layout-item chart-container"></div>
+      <md-empty-state v-else
+        md-icon="multiline_chart"
+        md-label="There's nothing to show"
+        md-description="Start tracking your time to see some graphics here.">
+      </md-empty-state>
     </div>
   </div>
 </template>
@@ -18,12 +23,7 @@
 <script>
 import * as d3 from 'd3';
 import { timelines } from 'd3-timelines';
-import Moment from 'moment';
-import { extendMoment } from 'moment-range';
-import humanizeDuration from 'humanize-duration';
 import Report from './report';
-
-const moment = extendMoment(Moment);
 
 export default {
   name: 'timelineChart',
@@ -116,7 +116,21 @@ export default {
     },
   },
   methods: {
+    hasDataToShow() {
+      if (this.timeSegments.length <= 0) {
+        return false;
+      } else if (this.timeSegments.length === 1
+        && (this.timeSegments.end - this.timeSegments.start) < 1) {
+        return false;
+      }
+
+      return true;
+    },
     render (el) {
+      if (!this.hasDataToShow()) {
+        return;
+      }
+
       const container = el.querySelector('.chart-container');
       
       const chart = timelines()
@@ -129,11 +143,9 @@ export default {
       
       d3.select(container)
         .append('svg')
+        .style('width', '100%')
         .datum(this.data)
         .call(chart);
-    },
-    _humanize (time) {
-      return humanizeDuration(time, { units: ['h', 'm', 's'] });
     },
   },
 };

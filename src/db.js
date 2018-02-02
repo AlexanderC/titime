@@ -1,12 +1,14 @@
 import db from 'diskdb';
-import fs from 'fs';
+import fs from 'fs-extra';
+import path from 'path';
 
 export default class DB {
-  constructor(path, collections = [], defaultCollection = null) {
-    this.path = path;
+  constructor(dbPath, collections = [], defaultCollection = null, backupOnStart = false) {
+    this.path = dbPath;
     this.collections = collections;
     this.db = null;
     this.currentCollection = defaultCollection;
+    this.backupOnStart = backupOnStart;
   }
 
   get(name = null) {
@@ -27,13 +29,24 @@ export default class DB {
     return !!this.db;
   }
 
-  connect() {
-    try {
-      fs.mkdirSync(this.path);
-    } catch (error) {
-      if (error.code !== 'EEXIST') {
-        throw error;
-      }
+  async connect() {
+    await fs.ensureDir(this.path);
+
+    if (this.backupOnStart) {
+      this.collections.forEach(async (collection) => {
+        const dbFile = path.join(this.path, `${collection}.json`);
+
+        const dbExists = await fs.pathExists(dbFile);
+
+        if (dbExists) {
+          const dbBackupFile = path.join(
+            this.path,
+            `${collection}.bck.json`,
+          );
+
+          await fs.copy(dbFile, dbBackupFile);
+        }
+      });
     }
 
     this.db = db.connect(this.path, this.collections);
@@ -48,6 +61,7 @@ export default class DB {
       repository.read('path'),
       repository.read('collections'),
       repository.read('defaultCollection'),
+      repository.read('backupOnStart'),
     );
   }
 

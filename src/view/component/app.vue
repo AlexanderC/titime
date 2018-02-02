@@ -1,6 +1,6 @@
 <template>
   <md-app>
-    <md-app-toolbar class="md-primary md-layout">
+    <md-app-toolbar class="md-primary md-layout control-offset">
       <div class="md-layout-item heading-item">
         <md-button @click="tracking = true" :disabled="tracking || !project" :class="[ 'md-raised', { 'md-accent': !tracking } ]">
           <md-icon>alarm_add</md-icon>
@@ -28,6 +28,7 @@
 import moment from 'moment';
 import 'moment-countdown';
 import countdown from 'countdown';
+import humanizeDuration from 'humanize-duration';
 import Projects from './projects';
 
 countdown.setLabels(
@@ -59,17 +60,71 @@ export default {
       }
     }, 200);
 
-    this.$registry.get('events').on(Projects.PROJECT_SELECTED, (project) => {
+    const EVENTS = this.$registry.get('EVENTS');
+    const events = this.$registry.get('events');
+
+    events.on(Projects.PROJECT_SELECTED, (project) => {
       this.project = project;
+    });
+
+    events.on(EVENTS.SLEEP, () => {
+      if (this.tracking) {
+        this.logTimeSegment();
+        this.tracking = false;
+      }
+    });
+
+    events.on(EVENTS.WAKEUP, () => {
+      this.$registry.get('notify')(
+        'TiTime - Stoped Tracking Time.',
+        'Please click "Start" in order to track your activity.'
+      );
+    });
+
+    events.on(EVENTS.IDLE, (time) => {
+      if (this.tracking) {
+        time = Math.ceil(time); // round up!
+
+        const newStartTime = moment();
+        const endTime = moment.unix(moment().unix() - time);
+        const idleTime = this._humanize(time);
+
+        this.$registry.get('notify')(
+          'TiTime - You\'re idle!',
+          `Do you want us to keep the time you were idle? (${idleTime})`,
+          [ 'Keep', 'Discard' ],
+          (response) => {
+            if (response === 1) {
+              this.logTimeSegment(endTime);
+              this.startTime = newStartTime;
+
+              this.$registry.get('notify')(
+                'TiTime - Idle Time Discarded.',
+                `Idle time of ${idleTime} has been discarded.`
+              );
+            }
+          }
+        );
+      }
     });
   },
   destroyed () {
+    if (this.tracking) {
+      this.logTimeSegment();
+    }
+    
     if (this.$ticker) {
       clearInterval(this.$ticker);
       this.$ticker = undefined;
     }
 
-    this.$registry.get('events').removeListener(Projects.PROJECT_SELECTED);
+    const EVENTS = this.$registry.get('EVENTS');
+    const events = this.$registry.get('events');
+
+    events.removeListener(Projects.PROJECT_SELECTED);
+    events.removeListener(EVENTS.SLEEP);
+    events.removeListener(EVENTS.WAKEUP);
+    events.removeListener(EVENTS.IDLE);
   },
   computed: {
     $registry () {
@@ -77,7 +132,10 @@ export default {
     },
   },
   methods: {
-    logTimeSegment () {
+    _humanize (time) {
+      return humanizeDuration(time * 1000, { units: ['h', 'm', 's'] });
+    },
+    logTimeSegment (endTime = null) {
       const { _id } = this.project;
       const db = this.$registry.get('db');
 
@@ -92,7 +150,7 @@ export default {
       
       timeSegments.push({
         start: this.startTime.unix(),
-        end: moment().unix(),
+        end: ((endTime && moment(endTime)) || moment()).unix(),
       });
 
       db.update({ _id }, { timeSegments });

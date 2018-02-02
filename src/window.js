@@ -1,8 +1,8 @@
 import { BrowserWindow } from 'electron';
-import Env from './env';
 import path from 'path';
 import Positioner from 'electron-positioner';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import Env from './env';
 
 export default class Window {
   constructor(view, options = {}) {

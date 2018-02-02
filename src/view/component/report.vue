@@ -77,9 +77,11 @@ export default {
       return this.$registry.get('db').findOne({ _id });
     },
     total () {
-      return this._humanize(this.timeSegments.reduce((acc, segment) => {
+      const seconds = this.timeSegments.reduce((acc, segment) => {
         return acc + (segment.end - segment.start);
-      }, 0));
+      }, 0);
+
+      return this._humanize(seconds);
     },
     timeSegments () {
       return (this.project.timeSegments || [])
@@ -118,7 +120,7 @@ export default {
   },
   methods: {
     _humanize (time) {
-      return humanizeDuration(time, { units: ['h', 'm', 's'] });
+      return humanizeDuration(time * 1000, { units: ['h', 'm', 's'] });
     },
   },
 };

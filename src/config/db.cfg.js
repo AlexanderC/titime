@@ -5,4 +5,5 @@ export default {
   path: path.join(Env.homeDir(), '.titime'),
   collections: ['projects'],
   defaultCollection: 'projects',
+  backupOnStart: true,
 };
