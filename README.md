@@ -5,6 +5,7 @@
 ## Prerequisites
 
 - Linux/MacOS
+- electron-forge (for development only)
 
 ## Installation and Usage
 
