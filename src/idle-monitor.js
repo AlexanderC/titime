@@ -1,6 +1,6 @@
 import { powerMonitor } from 'electron';
 import desktopIdle from 'desktop-idle';
-import { clearInterval, setTimeout } from 'timers';
+import { clearInterval } from 'timers';
 import moment from 'moment';
 
 export default class IdleMonitor {
