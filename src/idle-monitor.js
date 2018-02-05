@@ -46,15 +46,6 @@ export default class IdleMonitor {
       }
     });
 
-    setTimeout(() => {
-      this.maxIdleBeforeEmit = 10;
-      powerMonitor.emit('suspend');
-
-      setTimeout(() => {
-        powerMonitor.emit('resume');
-      }, 15000);
-    }, 10000);
-
     return this;
   }
 
