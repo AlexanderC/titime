@@ -26,19 +26,33 @@
 
 <script>
 import moment from 'moment';
-import 'moment-countdown';
-import countdown from 'countdown';
 import humanizeDuration from 'humanize-duration';
 import Projects from './projects';
 
-countdown.setLabels(
-	' ms| s| m| h| d| w| mo| y| dec| ce| mil',
-	' ms| s| m| h| d| w| mo| y| dec| ce| mil',
-	' / ',
-	', ',
-	'',
-  (n) => n.toString()
-);
+// https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+if (!String.prototype.padStart) {
+  String.prototype.padStart = function padStart(targetLength, padString) {
+
+    //truncate if number or convert non-number to 0;
+    targetLength = targetLength >> 0;
+    padString = String((typeof padString !== 'undefined' ? padString : ' '));
+
+    if (this.length > targetLength) {
+      return String(this);
+    } else {
+      targetLength = targetLength-this.length;
+
+      if (targetLength > padString.length) {
+
+        //append to original to ensure we are longer than needed
+        padString += padString.repeat(targetLength / padString.length);
+      }
+
+      return padString.slice(0,targetLength) + String(this);
+    }
+  };
+}
 
 export default {
   name: 'app',
@@ -56,7 +70,8 @@ export default {
   created () {
     this.$ticker = setInterval(() => {
       if (this.tracking) {
-        this.timer = this.startTime.countdown().toString();
+        this.timer = this._countdown();
+        this.$registry.get('setBadge')(this.timer);
       }
     }, 200);
 
@@ -132,6 +147,14 @@ export default {
     },
   },
   methods: {
+    _countdown () {
+      const duration = moment.duration(moment().diff(this.startTime));
+      const hours = Math.floor(duration.asHours()).toString().padStart(2, '0');
+      const minutes = duration.minutes().toString().padStart(2, '0');
+      const seconds = duration.seconds().toString().padStart(2, '0');
+
+      return `${hours}:${minutes}:${seconds}`;
+    },
     _humanize (time) {
       return humanizeDuration(time * 1000, { units: ['h', 'm', 's'] });
     },

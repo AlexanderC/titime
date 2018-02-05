@@ -47,6 +47,12 @@ registry
 // be closed automatically when the JavaScript object is garbage collected.
 const mainWindow = Window.fromRegistry(registry, 'main');
 
+registry.register('setBadge', async (text) => {
+  if (app.dock && typeof app.dock.setBadge === 'function') {
+    app.dock.setBadge(text);
+  }
+});
+
 registry.register('synchronizeRedmine', async (host, apiKey) => {
   const redmine = new RedmineProvider(db, { host, apiKey });
 
