@@ -47,6 +47,21 @@ registry
 // be closed automatically when the JavaScript object is garbage collected.
 const mainWindow = Window.fromRegistry(registry, 'main');
 
+const isSecondInstance = app.makeSingleInstance(() => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow.isCreated()) {
+    if (mainWindow.window.isMinimized()) {
+      mainWindow.window.restore();
+    }
+
+    mainWindow.window.focus();
+  }
+});
+
+if (isSecondInstance) {
+  app.quit();
+}
+
 registry.register('setBadge', async (text) => {
   if (app.dock && typeof app.dock.setBadge === 'function') {
     app.dock.setBadge(text);
@@ -127,8 +142,5 @@ app.on('window-all-closed', () => {
 app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  await mainWindow.ensureCreated();
+  await mainWindow.ensureCreated(registry.config().get('position'));
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
