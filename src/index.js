@@ -47,21 +47,6 @@ registry
 // be closed automatically when the JavaScript object is garbage collected.
 const mainWindow = Window.fromRegistry(registry, 'main');
 
-const isSecondInstance = app.makeSingleInstance(() => {
-  // Someone tried to run a second instance, we should focus our window.
-  if (mainWindow.isCreated()) {
-    if (mainWindow.window.isMinimized()) {
-      mainWindow.window.restore();
-    }
-
-    mainWindow.window.focus();
-  }
-});
-
-if (isSecondInstance) {
-  app.quit();
-}
-
 registry.register('setBadge', async (text) => {
   if (app.dock && typeof app.dock.setBadge === 'function') {
     app.dock.setBadge(text);
