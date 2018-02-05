@@ -75,28 +75,13 @@ export default {
       }
     }, 200);
 
-    const EVENTS = this.$registry.get('EVENTS');
     const events = this.$registry.get('events');
 
     events.on(Projects.PROJECT_SELECTED, (project) => {
       this.project = project;
     });
 
-    events.on(EVENTS.SLEEP, () => {
-      if (this.tracking) {
-        this.logTimeSegment();
-        this.tracking = false;
-      }
-    });
-
-    events.on(EVENTS.WAKEUP, () => {
-      this.$registry.get('notify')(
-        'TiTime - Stoped Tracking Time.',
-        'Please click "Start" in order to track your activity.'
-      );
-    });
-
-    events.on(EVENTS.IDLE, (time) => {
+    events.on('idle', (time) => {
       if (this.tracking) {
         time = Math.ceil(time); // round up!
 
@@ -132,14 +117,11 @@ export default {
       clearInterval(this.$ticker);
       this.$ticker = undefined;
     }
-
-    const EVENTS = this.$registry.get('EVENTS');
+    
     const events = this.$registry.get('events');
 
     events.removeListener(Projects.PROJECT_SELECTED);
-    events.removeListener(EVENTS.SLEEP);
-    events.removeListener(EVENTS.WAKEUP);
-    events.removeListener(EVENTS.IDLE);
+    events.removeListener('idle');
   },
   computed: {
     $registry () {

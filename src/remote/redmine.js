@@ -93,8 +93,6 @@ export default class RedmineProvider extends AbstractProvider {
                 issue_id: project.issueId,
                 hours: hours.toString(),
                 spent_on: moment(date).format('YYYY-MM-DD'),
-                // @todo: move description generation to config
-                comments: `Added by "TiTime" on ${moment().format('YYYY-MM-DD')}`,
               },
             };
 
