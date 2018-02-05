@@ -11,6 +11,46 @@ export default class DB {
     this.backupOnStart = backupOnStart;
   }
 
+  async archiveByYear(collection, resetKey) {
+    const year = new Date().getFullYear();
+    const systemDb = this.get('system');
+    const settings = systemDb.findOne({ module: this.constructor.name }) || {
+      module: this.constructor.name,
+      lastArchiveYear: year,
+    };
+
+    if (!settings._id) { // eslint-disable-line no-underscore-dangle
+      systemDb.save(settings);
+    } else if (year > settings.lastArchiveYear) {
+      const dbFile = path.join(this.path, `${collection}.json`);
+      const dbExists = await fs.pathExists(dbFile);
+
+      if (dbExists) {
+        const dbArchiveFile = path.join(
+          this.path,
+          `${collection}.${year - 1}.archive.json`,
+        );
+
+        await fs.copy(dbFile, dbArchiveFile);
+
+        const collectionDb = this.get(collection);
+        const toUpdate = {};
+        toUpdate[resetKey] = null;
+
+        const items = collectionDb.find();
+
+        for (const item of items) { // eslint-disable-line
+          const { _id } = item;
+
+          collectionDb.update({ _id }, toUpdate);
+        }
+      }
+
+      settings.lastArchiveYear = year;
+      systemDb.update({ _id: settings._id }, settings); // eslint-disable-line
+    }
+  }
+
   get(name = null) {
     return this.db[name || this.getCurrentCollection()];
   }

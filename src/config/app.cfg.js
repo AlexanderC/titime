@@ -1,6 +1,8 @@
 export default {
+  archiveByYear: true, // Archive previous year entries
+  archiveResetKey: 'timeSegments', // Reset loged time after a year
   maxIdleBeforeAsk: 60 * 5, // 5 minutes idle time allowed
-  minLogTime: 0.05, // log at least 5 minutes
+  minLogTime: 0.05, // Log at least 5 minutes
   position: 'topRight',
   availablePositions: [
     'trayLeft', 'trayBottomLeft', 'trayRight',

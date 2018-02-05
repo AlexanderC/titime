@@ -36,6 +36,13 @@ const idleMonitor = new IdleMonitor(
 // Small hook to call await
 (async () => {
   await db.connect();
+
+  if (registry.config().get('archiveByYear')) {
+    await db.archiveByYear(
+      db.currentCollection,
+      registry.config().get('archiveResetKey'),
+    );
+  }
 })();
 
 registry
