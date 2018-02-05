@@ -40,6 +40,7 @@ npm run publish
 - [x] Add icon
 - [x] Add Redmine Integration
 - [x] Add deep Redmine Integration
+- [x] Archive old data
 - [ ] Add Jira Integration
 - [ ] Add deep Jira Integration
 - [ ] Build for multiple platforms (Linux/Win)
