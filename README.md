@@ -41,7 +41,7 @@ npm run publish
 - [x] Add iddle detection
 - [x] Add icon
 - [x] Add Redmine Integration
-- [ ] Add deep Redmine Integration
+- [x] Add deep Redmine Integration
 - [ ] Add Jira Integration
 - [ ] Add deep Jira Integration
 - [ ] Build for multiple platforms (Linux/Win)
