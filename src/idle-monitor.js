@@ -1,6 +1,7 @@
 import { powerMonitor } from 'electron';
 import desktopIdle from 'desktop-idle';
-import { clearInterval } from 'timers';
+import { clearInterval, setTimeout } from 'timers';
+import moment from 'moment';
 
 export default class IdleMonitor {
   constructor(emitter = null, maxIdleBeforeEmit = 0) {
@@ -31,17 +32,12 @@ export default class IdleMonitor {
     }, 500);
 
     powerMonitor.on('suspend', () => {
-      this.suspendTime = Date.now();
+      this.suspendTime = moment().unix();
     });
 
     powerMonitor.on('resume', () => {
       if (this.suspendTime) {
-        const idle = Math.ceil((Date.now() - this.suspendTime) / 1000);
-
-        if (idle > this.maxIdleBeforeEmit) {
-          this.emitIdle(idle);
-        }
-
+        this.idleTime = moment().unix() - this.suspendTime;
         this.suspendTime = null;
       }
     });
