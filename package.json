@@ -32,8 +32,7 @@
           "zip"
         ],
         "linux": [
-          "deb",
-          "rpm"
+          "deb"
         ]
       },
       "electronPackagerConfig": {
@@ -44,8 +43,10 @@
         "name": "titime",
         "icon": "assets/icon/icon.ico"
       },
-      "electronInstallerDebian": {},
-      "electronInstallerRedhat": {},
+      "electronInstallerDebian": {
+        "name": "titime",
+        "icon": "assets/icon/icon.png"
+      },
       "github_repository": {
         "owner": "AlexanderC",
         "name": "titime"
