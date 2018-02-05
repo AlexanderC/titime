@@ -1,4 +1,4 @@
-# titime - [T]ool for [I]nstant [T]ime [T]racking
+# titime - Tool for Instant Time Tracking
 
 ![Logo](./assets/source/icon.png)
 
