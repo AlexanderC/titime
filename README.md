@@ -7,8 +7,8 @@
 ## Prerequisites
 
 - Linux/MacOS/Windows
-- `apt-get install electron-forge -g` (for development only)
-- `apt install libxss-dev pkg-config` (Linux only)
+- `npm install electron-forge -g` (for development only)
+- `apt-get install libxss-dev pkg-config` (Linux only)
 
 ## Installation and Usage
 
