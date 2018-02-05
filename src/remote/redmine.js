@@ -11,11 +11,11 @@ export default class RedmineProvider extends AbstractProvider {
     );
   }
 
-  generateId(issue) {
+  generateId(issue) { // eslint-disable-line class-methods-use-this
     return `redmine-${issue.id}`;
   }
 
-  generateName(issue) {
+  generateName(issue) { // eslint-disable-line class-methods-use-this
     let project = issue.project && issue.project.name;
     project = project.length > 15 ? `${project.substr(0, 15)}...` : project;
 
@@ -51,5 +51,10 @@ export default class RedmineProvider extends AbstractProvider {
         this.db.save(item);
       }
     });
+  }
+
+  // @todo Implement: https://github.com/zanran/node-redmine/blob/master/example/redmine-time-entry.js#L52
+  async report() { // eslint-disable-line class-methods-use-this
+    throw Error('Not Implemented');
   }
 }

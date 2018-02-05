@@ -4,11 +4,11 @@ export default class AbstractProvider {
     this.options = options;
   }
 
-  async synchronize() {
+  async synchronize() { // eslint-disable-line class-methods-use-this
     throw Error('Not Implemented');
   }
 
-  async report() {
+  async report() { // eslint-disable-line class-methods-use-this
     throw Error('Not Implemented');
   }
 }
