@@ -7,8 +7,8 @@
 ## Prerequisites
 
 - Linux/MacOS/Windows
-- `apt-get install electron-forge -g` (for development only)
-- `apt install libxss-dev pkg-config` (Linux only)
+- `npm install electron-forge -g` (for development only)
+- `apt-get install libxss-dev pkg-config` (Linux only)
 
 ## Installation and Usage
 
@@ -41,7 +41,7 @@ npm run publish
 - [x] Add iddle detection
 - [x] Add icon
 - [x] Add Redmine Integration
-- [ ] Add deep Redmine Integration
+- [x] Add deep Redmine Integration
 - [ ] Add Jira Integration
 - [ ] Add deep Jira Integration
 - [ ] Build for multiple platforms (Linux/Win)
