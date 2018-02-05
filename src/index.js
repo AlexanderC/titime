@@ -20,6 +20,8 @@ global.$registry = registry;
 
 if (Env.isDebug()) {
   enableLiveReload();
+
+  // @todo: uncomment to reset to defaults
   // registry.config().clear();
   // registry._loadConfig();
 }
@@ -57,6 +59,7 @@ registry.register('synchronizeRedmine', async (host, apiKey) => {
   const redmine = new RedmineProvider(db, { host, apiKey });
 
   await redmine.synchronize();
+  await redmine.report(registry.config().get('minLogTime'));
 });
 
 // @ref https://electronjs.org/docs/api/dialog#dialogshowmessageboxbrowserwindow-options-callback

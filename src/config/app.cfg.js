@@ -1,5 +1,6 @@
 export default {
   maxIdleBeforeAsk: 60 * 5, // 5 minutes idle time allowed
+  minLogTime: 0.05, // log at least 5 minutes
   position: 'topRight',
   availablePositions: [
     'trayLeft', 'trayBottomLeft', 'trayRight',

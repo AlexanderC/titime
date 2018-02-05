@@ -1,9 +1,9 @@
-import Env from '../env';
 import path from 'path';
+import Env from '../env';
 
 export default {
   path: path.join(Env.homeDir(), '.titime'),
-  collections: ['projects'],
+  collections: ['projects', 'system'],
   defaultCollection: 'projects',
   backupOnStart: true,
 };
