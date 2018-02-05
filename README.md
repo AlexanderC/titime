@@ -10,17 +10,15 @@
 - `npm install electron-forge -g` (for development only)
 - `apt-get install libxss-dev pkg-config` (Linux only)
 
-## Installation and Usage
+## Installation
 
-Installation:
+Download prebuild application from release page or
+select version from `release/` folder.
+
+## Development
 
 ```bash
 npm install
-```
-
-Development:
-
-```bash
 npm run start
 ```
 
