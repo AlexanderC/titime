@@ -28,7 +28,7 @@ export default class Cron {
     const instance = new CronJob({
       cronTime: cron,
       onTick() {
-        Logger.debug(`Run "${name}" cron job`);
+        Logger.info(`Run "${name}" cron job`);
 
         return job();
       },
