@@ -78,6 +78,10 @@ export default {
     const events = this.$registry.get('events');
 
     events.on(Projects.PROJECT_SELECTED, (project) => {
+      if (project) {
+        this.$registry.get('logger').debug(`Project "${project.name}" selected`);
+      }
+
       this.project = project;
     });
 
@@ -95,6 +99,8 @@ export default {
           [ 'Keep', 'Discard' ],
           (response) => {
             if (response === 1) {
+              this.$registry.get('logger').info(`Discard ${time} seconds idle time spent on "${this.project.name}"`);
+
               this.logTimeSegment(endTime);
               this.startTime = newStartTime;
 
@@ -102,6 +108,8 @@ export default {
                 'TiTime - Idle Time Discarded.',
                 `Idle time of ${idleTime} has been discarded.`
               );
+            } else {
+              this.$registry.get('logger').info(`Keep ${time} seconds idle time spent on "${this.project.name}"`);
             }
           }
         );
@@ -151,12 +159,15 @@ export default {
         return;
       }
 
-      const timeSegments = project.timeSegments || [];
-      
-      timeSegments.push({
+      const timeSegment = {
         start: this.startTime.unix(),
         end: ((endTime && moment(endTime)) || moment()).unix(),
-      });
+      };
+      const timeSegments = project.timeSegments || [];
+      
+      timeSegments.push(timeSegment);
+
+      this.$registry.get('logger').info(`Log ${timeSegment.end - timeSegment.start} seconds spent on "${this.project.name}"`);
 
       db.update({ _id }, { timeSegments });
     },
@@ -165,8 +176,12 @@ export default {
     tracking (val) {
       // If timer restarted
       if (val) {
+        this.$registry.get('logger').info(`Start logging time for "${this.project.name}"`);
+
         this.startTime = moment();
       } else {
+        this.$registry.get('logger').info(`Stop logging time for "${this.project.name}"`);
+
         this.logTimeSegment();
       }
     },

@@ -1,6 +1,7 @@
 import db from 'diskdb';
 import fs from 'fs-extra';
 import path from 'path';
+import Logger from './logger';
 
 export default class DB {
   constructor(dbPath, collections = [], defaultCollection = null, backupOnStart = false) {
@@ -25,7 +26,11 @@ export default class DB {
       const dbFile = path.join(this.path, `${collection}.json`);
       const dbExists = await fs.pathExists(dbFile);
 
+      Logger.debug(`Lookup for database collection: ${collection}`);
+
       if (dbExists) {
+        Logger.debug(`Archive database collection: ${collection}`);
+
         const dbArchiveFile = path.join(
           this.path,
           `${collection}.${year - 1}.archive.json`,
@@ -70,6 +75,8 @@ export default class DB {
   }
 
   async connect() {
+    Logger.debug(`Connect to database: ${this.path}`);
+
     await fs.ensureDir(this.path);
 
     if (this.backupOnStart) {
@@ -79,6 +86,8 @@ export default class DB {
         const dbExists = await fs.pathExists(dbFile);
 
         if (dbExists) {
+          Logger.debug(`Backup database collection: ${collection}`);
+
           const dbBackupFile = path.join(
             this.path,
             `${collection}.bck.json`,

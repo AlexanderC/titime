@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron';
 import path from 'path';
 import Positioner from 'electron-positioner';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import Logger from './logger';
 import Env from './env';
 
 export default class Window {
@@ -36,6 +37,8 @@ export default class Window {
   }
 
   async create(position = null) {
+    Logger.debug('Create a window');
+
     // Create the browser window.
     this.window = new BrowserWindow(this.options);
 
@@ -43,6 +46,8 @@ export default class Window {
     this.window.loadURL(this.viewPath());
 
     if (Env.isDebug()) {
+      Logger.debug('Open development tools');
+
       // Add vue debug tools.
       await installExtension(VUEJS_DEVTOOLS);
       // Open the DevTools.
@@ -51,6 +56,8 @@ export default class Window {
 
     // Emitted when the window is closed.
     this.window.on('closed', () => {
+      Logger.debug('Window closed');
+
       // Dereference the window object, usually you would store windows
       // in an array if your app supports multi windows, this is the time
       // when you should delete the corresponding element.

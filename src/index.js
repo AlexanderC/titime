@@ -8,6 +8,8 @@ import Env from './env';
 import RedmineProvider from './remote/redmine';
 import IdleMonitor from './idle-monitor';
 import Notifier from './notifier';
+import Cron from './cron';
+import Logger from './logger';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -18,20 +20,24 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 const registry = Registry.create();
 global.$registry = registry;
 
-if (Env.isDebug()) {
-  enableLiveReload();
-
-  // @todo: uncomment to reset to defaults
-  // registry.config().clear();
-  // registry._loadConfig();
-}
-
+const logger = Logger.setup(registry.config().get('logOptions'));
+const cron = new Cron();
 const events = new EventEmitter();
 const db = DB.fromRegistry(registry);
 const idleMonitor = new IdleMonitor(
   events,
   registry.config().get('maxIdleBeforeAsk'),
 );
+
+if (Env.isDebug()) {
+  logger.level('debug');
+  logger.info('Debug mode enabled');
+
+  enableLiveReload();
+
+  registry.config().clear();
+  registry._loadConfig(); // eslint-disable-line
+}
 
 // Small hook to call await
 (async () => {
@@ -46,6 +52,7 @@ const idleMonitor = new IdleMonitor(
 })();
 
 registry
+  .register('logger', logger)
   .register('events', events)
   .register('app', app)
   .register('db', db)
@@ -56,6 +63,15 @@ registry
   })
   .register('synchronizeRedmine', async (host, apiKey) => {
     const redmine = new RedmineProvider(db, { host, apiKey });
+
+    if (!cron.exists('redmine')) {
+      cron.add(
+        'redmine',
+        registry.config().get('remoteSyncCron'),
+        () => redmine.synchronize().then(() => redmine.report(registry.config().get('minLogTime'))),
+        true,
+      );
+    }
 
     await redmine.synchronize();
     await redmine.report(registry.config().get('minLogTime'));
@@ -83,11 +99,13 @@ app.on('ready', async () => {
     registry.config().get('appMenu'),
   ));
 
+  cron.start();
   idleMonitor.start();
 });
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
+  cron.stop();
   idleMonitor.stop();
   app.quit();
 });

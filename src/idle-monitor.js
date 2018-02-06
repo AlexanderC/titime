@@ -2,6 +2,7 @@ import { powerMonitor } from 'electron';
 import desktopIdle from 'desktop-idle';
 import { clearInterval } from 'timers';
 import moment from 'moment';
+import Logger from './logger';
 
 export default class IdleMonitor {
   constructor(emitter = null, maxIdleBeforeEmit = 0) {
@@ -14,6 +15,8 @@ export default class IdleMonitor {
 
   emitIdle(time = null) {
     if (this.emitter) {
+      Logger.debug(`Report idle time ${time || this.idleTime}`);
+
       this.emitter.emit('idle', time || this.idleTime);
     }
 
@@ -21,6 +24,8 @@ export default class IdleMonitor {
   }
 
   start() {
+    Logger.debug('Start monitoring idle time');
+
     this.ticker = setInterval(() => {
       const idle = desktopIdle.getIdleTime();
 
@@ -32,12 +37,19 @@ export default class IdleMonitor {
     }, 500);
 
     powerMonitor.on('suspend', () => {
+      Logger.debug('Suspend event received');
+
       this.suspendTime = moment().unix();
     });
 
     powerMonitor.on('resume', () => {
+      Logger.debug('Resume event received');
+
       if (this.suspendTime) {
         this.idleTime = moment().unix() - this.suspendTime;
+
+        Logger.debug(`Idle time while suspended: ${this.idleTime} seconds`);
+
         this.suspendTime = null;
       }
     });
@@ -46,6 +58,8 @@ export default class IdleMonitor {
   }
 
   stop() {
+    Logger.debug('Stop monitoring idle time');
+
     if (this.ticker) {
       clearInterval(this.ticker);
     }

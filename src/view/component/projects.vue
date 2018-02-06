@@ -66,7 +66,7 @@
 
     <md-dialog-actions>
       <md-button class="md-raised" @click="redmineDialog = false">Close</md-button>
-      <md-button class="md-raised md-accent" @click="syncRedmine(); redmineDialog = false">Synchronize</md-button>
+      <md-button class="md-raised md-accent" :disabled="!canSyncRedmine()" @click="syncRedmine(); redmineDialog = false">Synchronize</md-button>
     </md-dialog-actions>
   </md-dialog>
 
@@ -148,13 +148,18 @@ export default {
     this.syncRedmine(true);
   },
   methods: {
+    canSyncRedmine () {
+      return this.redmineHost && this.redmineApiKey;
+    },
     async syncRedmine (readConfig = false) {
       if (readConfig) {
         this.redmineHost = this.$registry.config().get(REDMINE.HOST);
         this.redmineApiKey = this.$registry.config().get(REDMINE.API_KEY);
       }
 
-      if (this.redmineHost && this.redmineApiKey) {
+      if (this.canSyncRedmine()) {
+        this.$registry.get('logger').info(`Trigger Redmine synchronization`);
+
         this.$registry.config().set(REDMINE.HOST, this.redmineHost);
         this.$registry.config().set(REDMINE.API_KEY, this.redmineApiKey);
 
@@ -167,6 +172,8 @@ export default {
             `We've successfully synchronized w/ Redmine (${ this.redmineHost }).`
           );
         } catch (error) {
+          this.$registry.get('logger').error(error.message);
+
           this.$registry.get('notify')(
             'TiTime - Redmine Integration.',
             `Failed to synchronized w/ Redmine (${ this.redmineHost }). Error: ${ error.message }`
@@ -218,6 +225,8 @@ export default {
         .forEach(project => this.saveProject(project));
     },
     archiveProject (project) {
+      this.$registry.get('logger').info(`Archive "${project.name}" project`);
+
       if (this.isActiveProject(project)) {
         this.activeProject = null;
       }
@@ -229,6 +238,8 @@ export default {
       this.refresh();
     },
     unarchiveProject (project) {
+      this.$registry.get('logger').info(`Unarchive "${project.name}" project`);
+
       const { _id } = project;
       
       this.$registry.get('db').update({ _id }, { isArchived: false });
@@ -252,6 +263,8 @@ export default {
       this.newProjectLink = null;
     },
     saveProject (project) {
+      this.$registry.get('logger').info(`Save "${project.name}" project`);
+
       this.$registry.get('db').save(project);
 
       this.refresh();
@@ -270,6 +283,8 @@ export default {
       }
     },
     deleteProject (project) {
+      this.$registry.get('logger').info(`Delete "${project.name}" project`);
+
       const { _id } = project;
 
       this.$registry.get('db').remove({ _id }, true);
@@ -277,6 +292,8 @@ export default {
       this.refresh();
     },
     reportProject (project) {
+      this.$registry.get('logger').debug(`Open report for "${project.name}" project`);
+
       this.$registry.get('openReport')(project._id);
     },
   },

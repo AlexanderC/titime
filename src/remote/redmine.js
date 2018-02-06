@@ -3,9 +3,12 @@ import path from 'path';
 import pify from 'pify';
 import moment from 'moment';
 import AbstractProvider from './abstract-provider';
+import Logger from '../logger';
 
 export default class RedmineProvider extends AbstractProvider {
   createClient() {
+    Logger.debug(`Connect to Redmine on ${this.options.host}`);
+
     return new Redmine(
       this.options.host,
       { apiKey: this.options.apiKey },
@@ -25,6 +28,8 @@ export default class RedmineProvider extends AbstractProvider {
 
   // @todo add pagination
   async synchronize() {
+    Logger.debug('Synchronize with Redmine');
+
     const redmine = this.createClient();
     const { issues } = await pify(redmine.issues.bind(redmine))({
       limit: 9999,
@@ -46,13 +51,18 @@ export default class RedmineProvider extends AbstractProvider {
       const existingItem = this.db.findOne({ issueId });
 
       if (!existingItem) {
+        Logger.info(`Add new Redmine issue: ${item.name} #${issueId}`);
+
         this.db.save(item);
-      } else {
+      }
+      /* else {
+        Logger.info(`Update Redmine issue: ${item.name} #${issueId}`);
+
         const { projectId, name } = item;
         const { _id } = existingItem;
 
         this.db.update({ _id }, { projectId, name });
-      }
+      } */
     });
   }
 
@@ -67,6 +77,8 @@ export default class RedmineProvider extends AbstractProvider {
     settings.lastReportTime = settings.lastReportTime || null;
 
     if (this.shouldReport(settings.lastReportTime)) {
+      Logger.debug('Report time to Redmine');
+
       const timeToLog = [];
       const projects = this.db.find()
         .filter(project => (project.timeSegments || []).length > 0);
@@ -105,6 +117,11 @@ export default class RedmineProvider extends AbstractProvider {
         const redmine = this.createClient();
 
         await Promise.all(timeToLog.map((payload) => { // eslint-disable-line
+          Logger.info(
+            `Log ${payload.hours} hours spent on issue ` +
+            `#${payload.issue_id} on ${payload.spent_on} to Redmine`,
+          );
+
           return pify(redmine.create_time_entry.bind(redmine))(payload);
         }));
 

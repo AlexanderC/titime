@@ -1,4 +1,14 @@
+import path from 'path';
+import Env from '../env';
+
 export default {
+  logOptions: {
+    filename: path.join(Env.homeDir(), '.titime', 'log'),
+    prepend: true,
+    level: 'info',
+    maxDays: 30,
+  },
+  remoteSyncCron: '* */10 * * * *', // Cron to run remote sync every 10 minutes (e.g. Redmine)
   archiveByYear: true, // Archive previous year entries
   archiveResetKey: 'timeSegments', // Reset loged time after a year
   maxIdleBeforeAsk: 60 * 5, // 5 minutes idle time allowed
