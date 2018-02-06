@@ -12,8 +12,7 @@
 
 ## Installation
 
-Download prebuild application from release page or
-select version from `release/` folder.
+Download prebuild application from [release page](https://github.com/AlexanderC/titime/releases/latest).
 
 ## Development
 
