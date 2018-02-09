@@ -65,11 +65,26 @@ export default {
       startTime: moment(),
       timer: 'N/A',
       project: false,
+      state: {
+        idlePending: false,
+        pendingIdleTime: 0,
+      },
     };
   },
   created () {
     this.$ticker = setInterval(() => {
       if (this.tracking) {
+        if (!this.startTime.isSame(moment(), 'day') && !this.idlePending) {
+          endTime = this.startTime.endOf('day');
+          this.logTimeSegment(endTime);
+          this.startTime = moment().startOf('day');
+
+          this.$registry.get('notify')(
+            'TiTime - Logged time.',
+            'We logged the time you\'ve spent yesterday. Start new timer for today...'
+          );
+        }
+        
         this.timer = this._countdown();
         this.$registry.get('setBadge')(this.timer);
       }
@@ -87,6 +102,14 @@ export default {
 
     events.on('idle', (time) => {
       if (this.tracking) {
+        // Do not show more than 1 time
+        if (this.idlePending) {
+          this.pendingIdleTime += time;
+          return;
+        }
+
+        this.idlePending = true;
+
         time = Math.ceil(time); // round up!
 
         const newStartTime = moment();
@@ -110,6 +133,14 @@ export default {
               );
             } else {
               this.$registry.get('logger').info(`Keep ${time} seconds idle time spent on "${this.project.name}"`);
+            }
+
+            this.idlePending = false;
+
+            if (this.pendingIdleTime > 0) {
+              time = this.pendingIdleTime;
+              this.pendingIdleTime = 0;
+              events.emit('idle', time);
             }
           }
         );
@@ -159,15 +190,24 @@ export default {
         return;
       }
 
-      const timeSegment = {
-        start: this.startTime.unix(),
-        end: ((endTime && moment(endTime)) || moment()).unix(),
-      };
+      const start = this.startTime.unix();
+      const end = ((endTime && moment(endTime)) || moment()).unix();
+
+      if (end <= start) {
+        const diff = end - start;
+
+        this.$registry.get('logger')
+          .warn(`Attempt to log negative time segment of ${ diff } seconds for "${this.project.name}"`);
+        return;
+      }
+
+      const timeSegment = { start, end };
       const timeSegments = project.timeSegments || [];
       
       timeSegments.push(timeSegment);
 
-      this.$registry.get('logger').info(`Log ${timeSegment.end - timeSegment.start} seconds spent on "${this.project.name}"`);
+      this.$registry.get('logger')
+        .info(`Log ${timeSegment.end - timeSegment.start} seconds spent on "${this.project.name}"`);
 
       db.update({ _id }, { timeSegments });
     },

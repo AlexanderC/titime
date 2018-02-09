@@ -117,7 +117,7 @@ export default class RedmineProvider extends AbstractProvider {
         const redmine = this.createClient();
 
         await Promise.all(timeToLog.map((payload) => { // eslint-disable-line
-          const { hours, issue_id, spent_on } = payload;
+          const { hours, issue_id, spent_on } = payload.time_entry;
 
           Logger.info(
             `Log ${hours} hours spent on issue ` +
@@ -179,7 +179,7 @@ export default class RedmineProvider extends AbstractProvider {
   timeSegmentValid(lastReportTime, segment) { // eslint-disable-line class-methods-use-this
     if (!lastReportTime) {
       return true;
-    } else if (moment.unix(segment.end).isAfter(moment.unix(lastReportTime))) {
+    } else if (moment.unix(segment.start).isSameOrAfter(moment.unix(lastReportTime))) {
       return true;
     }
 
@@ -189,7 +189,7 @@ export default class RedmineProvider extends AbstractProvider {
   shouldReport(lastReportTime) { // eslint-disable-line class-methods-use-this
     if (!lastReportTime) {
       return true;
-    } else if (moment.unix(lastReportTime).duration().asDays() >= 1) {
+    } else if (moment().isAfter(moment.unix(lastReportTime), 'day')) {
       return true;
     }
 
