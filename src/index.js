@@ -6,6 +6,7 @@ import Registry from './registry';
 import DB from './db';
 import Env from './env';
 import RedmineProvider from './remote/redmine';
+import JiraProvider from './remote/jira';
 import IdleMonitor from './idle-monitor';
 import Notifier from './notifier';
 import Cron from './cron';
@@ -51,6 +52,22 @@ if (Env.isDebug()) {
   }
 })();
 
+const createProviderSyncCommand = (providerName, createProvider) => async (...args) => {
+  const provider = createProvider(...args);
+
+  if (!cron.exists('jira')) {
+    cron.add(
+      'jira',
+      registry.config().get('remoteSyncCron'),
+      () => provider.synchronize().then(() => provider.report(registry.config().get('minLogTime'))),
+      true,
+    );
+  }
+
+  await provider.synchronize();
+  await provider.report(registry.config().get('minLogTime'));
+};
+
 registry
   .register('logger', logger)
   .register('events', events)
@@ -61,21 +78,14 @@ registry
       app.dock.setBadge(text);
     }
   })
-  .register('synchronizeRedmine', async (host, apiKey) => {
-    const redmine = new RedmineProvider(db, { host, apiKey });
-
-    if (!cron.exists('redmine')) {
-      cron.add(
-        'redmine',
-        registry.config().get('remoteSyncCron'),
-        () => redmine.synchronize().then(() => redmine.report(registry.config().get('minLogTime'))),
-        true,
-      );
-    }
-
-    await redmine.synchronize();
-    await redmine.report(registry.config().get('minLogTime'));
-  })
+  .register('synchronizeRedmine', createProviderSyncCommand(
+    'jira',
+    (host, apiKey) => new RedmineProvider(db, { host, apiKey }),
+  ))
+  .register('synchronizeJira', createProviderSyncCommand(
+    'jira',
+    (host, username, password) => new JiraProvider(db, { host, username, password }),
+  ))
   .register('notify', Notifier.notify)
   .register('openReport', async (projectId) => {
     registry.config().set('lastReportProjectId', projectId);

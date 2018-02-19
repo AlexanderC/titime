@@ -44,7 +44,11 @@
         </md-button>
         <md-button @click.prevent.stop="redmineDialog = true">
           <md-icon>bug_report</md-icon>
-          Integrate Redmine
+          Redmine
+        </md-button>
+        <md-button @click.prevent.stop="jiraDialog = true">
+          <md-icon>bug_report</md-icon>
+          Jira
         </md-button>
       </md-list-item>
     </md-list>
@@ -69,6 +73,32 @@
       <md-button class="md-raised md-accent" :disabled="!canSyncRedmine()" @click="syncRedmine(); redmineDialog = false">Synchronize</md-button>
     </md-dialog-actions>
   </md-dialog>
+
+    <md-dialog v-if="jiraDialog" md-active>
+      <md-dialog-title>Jira Integration</md-dialog-title>
+
+      <md-content class="new-project">
+        <md-field>
+          <label>Host</label>
+          <md-input v-model="jiraHost" required></md-input>
+        </md-field>
+
+        <md-field>
+          <label>Username</label>
+          <md-input v-model="jiraUsername" required></md-input>
+        </md-field>
+
+        <md-field>
+          <label>Password</label>
+          <md-input v-model="jiraPassword" type="password"></md-input>
+        </md-field>
+      </md-content>
+
+      <md-dialog-actions>
+        <md-button class="md-raised" @click="jiraDialog = false">Close</md-button>
+        <md-button class="md-raised md-accent" @click="syncJira(); jiraDialog = false">Synchronize</md-button>
+      </md-dialog-actions>
+    </md-dialog>
 
   <md-dialog v-if="newProjectDialog" md-active>
     <md-dialog-title>Add a Project</md-dialog-title>
@@ -109,6 +139,7 @@ import validUrl from 'valid-url';
 
 const PROJECT_SELECTED = 'property-selected';
 const REDMINE = { HOST: 'redmine_host', API_KEY: 'redmine_apiKey' };
+const JIRA = { HOST: 'jira_host', USERNAME: 'jira_username', PASSWORD: 'jira_password' };
 
 export default {
   PROJECT_SELECTED,
@@ -119,6 +150,10 @@ export default {
       redmineDialog: false,
       redmineHost: null,
       redmineApiKey: null,
+      jiraDialog: false,
+      jiraHost: null,
+      jiraUsername: null,
+      jiraPassword: null,
       newProjectDialog: false,
       newProjectName: null,
       newProjectLink: null,
@@ -181,6 +216,39 @@ export default {
         }
       }
     },
+
+    // TODO: make separate component for synchronization
+    async syncJira (readConfig = false) {
+      if (readConfig) {
+        this.jiraHost = this.$registry.config().get(JIRA.HOST);
+        this.jiraUsername = this.$registry.config().get(JIRA.USERNAME);
+        this.jiraPassword = this.$registry.config().get(JIRA.PASSWORD);
+      }
+
+      this.$registry.get('logger').info('Trigger Jira synchronization');
+
+      this.$registry.config().set(this.jiraHost, JIRA.HOST);
+      this.$registry.config().set(this.jiraUsername, JIRA.USERNAME);
+      this.$registry.config().set(this.jiraPassword, JIRA.PASSWORD);
+
+      try {
+        await this.$registry.get('synchronizeJira')(this.jiraHost, this.jiraUsername, this.jiraPassword);
+        this.refresh();
+
+        this.$registry.get('notify')(
+          'TiTime - Jira Integration.',
+          `We've successfully synchronized w/ Jira (${ this.jiraHost }).`
+        );
+      } catch (error) {
+        this.$registry.get('logger').error(error.message);
+
+        this.$registry.get('notify')(
+          'TiTime - Jira Integration.',
+          `Failed to synchronized w/ Jira (${ this.jiraHost }). Error: ${ error.message }`
+        );
+      }
+    },
+
     validUrl (val) {
       return validUrl.isUri(val);
     },
