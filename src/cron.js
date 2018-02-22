@@ -18,22 +18,36 @@ export default class Cron {
     return this.jobs[name] || null;
   }
 
-  add(name, cron, job, start = false) {
+  add(name, cronTime, job, start = false) {
     if (this.exists(name)) {
       throw new Error(`Cron job "${name}" already exists`);
     }
 
-    Logger.debug(`Add cron job "${name}" with pattern "${cron}"`);
+    Logger.debug(`Add cron job "${name}" with pattern "${cronTime}"`);
 
-    const instance = new CronJob({
-      cronTime: cron,
-      onTick() {
-        Logger.info(`Run "${name}" cron job`);
+    let running = false;
 
-        return job();
-      },
-      start,
-    });
+    const onTick = () => {
+      if (running) {
+        return Promise.resolve();
+      }
+
+      Logger.info(`Run "${name}" cron job`);
+
+      return job()
+        .then((result) => {
+          running = false;
+
+          return Promise.resolve(result);
+        })
+        .catch((error) => {
+          running = false;
+
+          return Promise.reject(error);
+        });
+    };
+
+    const instance = new CronJob({ cronTime, onTick, start });
 
     this.jobs[name] = instance;
 

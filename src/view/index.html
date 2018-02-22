@@ -21,6 +21,16 @@
       .md-content.new-project {
         margin: 30px;
       }
+
+      .md-app-toolbar {
+        position: absolute;
+        top: 0;
+        z-index: 9999;
+      }
+
+      .md-app-scroller {
+        margin-top: 50px;
+      }
     </style>
   </head>
   <body>
@@ -28,15 +38,38 @@
   </body>
 
   <script>
-  import Vue from 'vue';
-  import VueMaterial from 'vue-material';
-  import VueElectron from 'vue-electron';
-  import App from './component/app';
+    import Vue from 'vue';
+    import VueMaterial from 'vue-material';
+    import VueElectron from 'vue-electron';
+    import App from './component/app';
 
-  // Load global components
-  Vue.use(VueMaterial)
-  Vue.use(VueElectron);
+    // Load global components
+    Vue.use(VueMaterial)
+    Vue.use(VueElectron);
 
-  new Vue(App).$mount('app');
+    new Vue(App).$mount('app');
+
+    let prevOffset = 0;
+    let offset = 0;
+    let navbar = null;
+
+    setInterval(() => {
+      if (!navbar) {
+        navbar = document.querySelector('.md-app-toolbar');
+      }
+
+      if (prevOffset !== offset) {
+        navbar.style.display = 'none';
+      } else {
+        navbar.style.top = `${ offset }px`;
+        navbar.style.display = 'initial';
+      }
+
+      prevOffset = offset;
+    }, 40);
+
+    window.onscroll = () => {
+      offset = window.pageYOffset;
+    };
   </script>
 </html>
