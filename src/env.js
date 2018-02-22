@@ -3,6 +3,10 @@ export default class Env {
     return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
   }
 
+  static resetConfig() {
+    return this.hasVar('reset');
+  }
+
   static isDebug() {
     return this.hasVar('debug');
   }

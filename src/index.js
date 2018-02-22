@@ -35,7 +35,9 @@ if (Env.isDebug()) {
   logger.info('Debug mode enabled');
 
   enableLiveReload();
+}
 
+if (Env.resetConfig()) {
   registry.config().clear();
   registry._loadConfig(); // eslint-disable-line
 }
