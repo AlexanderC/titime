@@ -179,7 +179,7 @@ export default class RedmineProvider extends AbstractProvider {
   timeSegmentValid(lastReportTime, segment) { // eslint-disable-line class-methods-use-this
     if (!lastReportTime) {
       return true;
-    } else if (moment.unix(segment.start).isSameOrAfter(moment.unix(lastReportTime))) {
+    } else if (moment.unix(segment.end).isSameOrAfter(moment.unix(lastReportTime))) {
       return true;
     }
 

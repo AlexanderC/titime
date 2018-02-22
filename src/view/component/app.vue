@@ -1,20 +1,22 @@
 <template>
-  <md-app>
-    <md-app-toolbar class="md-primary md-layout control-offset">
-      <div class="md-layout-item heading-item">
-        <md-button @click="tracking = true" :disabled="tracking || !project" :class="[ 'md-raised', { 'md-accent': !tracking } ]">
-          <md-icon>alarm_add</md-icon>
-          Start
-        </md-button>
-      </div>
-      <div class="md-layout-item heading-item">
-        {{ timer }}
-      </div>
-      <div class="md-layout-item heading-item">
-        <md-button @click="tracking = false" :disabled="!tracking || !project" :class="[ 'md-raised', { 'md-accent': tracking } ]">
-          <md-icon>alarm_off</md-icon>
-          Stop
-        </md-button>
+  <md-app md-waterfall md-mode="fixed">
+    <md-app-toolbar class="md-primary md-dense">
+      <div class="md-toolbar-row">
+        <div class="md-layout-item heading-item">
+          <md-button @click="tracking = true" :disabled="tracking || !project" :class="[ 'md-raised', { 'md-accent': !tracking } ]">
+            <md-icon>alarm_add</md-icon>
+            Start
+          </md-button>
+        </div>
+        <div class="md-layout-item heading-item">
+          {{ timer }}
+        </div>
+        <div class="md-layout-item heading-item">
+          <md-button @click="tracking = false" :disabled="!tracking || !project" :class="[ 'md-raised', { 'md-accent': tracking } ]">
+            <md-icon>alarm_off</md-icon>
+            Stop
+          </md-button>
+        </div>
       </div>
     </md-app-toolbar>
 
@@ -57,7 +59,7 @@ if (!String.prototype.padStart) {
 export default {
   name: 'app',
   components: {
-    Projects
+    Projects,
   },
   data () {
     return {

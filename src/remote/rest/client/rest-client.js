@@ -1,3 +1,5 @@
+'use strict';
+
 import axios from 'axios';
 import invariant from '../../../invariant';
 import AnonProvider from '../auth/anon-provider';

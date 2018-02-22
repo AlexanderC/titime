@@ -96,7 +96,7 @@
 
       <md-dialog-actions>
         <md-button class="md-raised" @click="jiraDialog = false">Close</md-button>
-        <md-button class="md-raised md-accent" @click="syncJira(); jiraDialog = false">Synchronize</md-button>
+        <md-button class="md-raised md-accent" :disabled="!canSyncJira()" @click="syncJira(); jiraDialog = false">Synchronize</md-button>
       </md-dialog-actions>
     </md-dialog>
 
@@ -181,10 +181,14 @@ export default {
     this.refresh();
 
     this.syncRedmine(true);
+    this.syncJira(true);
   },
   methods: {
     canSyncRedmine () {
       return this.redmineHost && this.redmineApiKey;
+    },
+    canSyncJira () {
+      return this.jiraHost && this.jiraUsername && this.jiraPassword;
     },
     async syncRedmine (readConfig = false) {
       if (readConfig) {
@@ -216,8 +220,6 @@ export default {
         }
       }
     },
-
-    // TODO: make separate component for synchronization
     async syncJira (readConfig = false) {
       if (readConfig) {
         this.jiraHost = this.$registry.config().get(JIRA.HOST);
@@ -225,30 +227,31 @@ export default {
         this.jiraPassword = this.$registry.config().get(JIRA.PASSWORD);
       }
 
-      this.$registry.get('logger').info('Trigger Jira synchronization');
+      if (this.canSyncJira()) {
+        this.$registry.get('logger').info('Trigger Jira synchronization');
 
-      this.$registry.config().set(this.jiraHost, JIRA.HOST);
-      this.$registry.config().set(this.jiraUsername, JIRA.USERNAME);
-      this.$registry.config().set(this.jiraPassword, JIRA.PASSWORD);
+        this.$registry.config().set(this.jiraHost, JIRA.HOST);
+        this.$registry.config().set(this.jiraUsername, JIRA.USERNAME);
+        this.$registry.config().set(this.jiraPassword, JIRA.PASSWORD);
 
-      try {
-        await this.$registry.get('synchronizeJira')(this.jiraHost, this.jiraUsername, this.jiraPassword);
-        this.refresh();
+        try {
+          await this.$registry.get('synchronizeJira')(this.jiraHost, this.jiraUsername, this.jiraPassword);
+          this.refresh();
 
-        this.$registry.get('notify')(
-          'TiTime - Jira Integration.',
-          `We've successfully synchronized w/ Jira (${ this.jiraHost }).`
-        );
-      } catch (error) {
-        this.$registry.get('logger').error(error.message);
+          this.$registry.get('notify')(
+            'TiTime - Jira Integration.',
+            `We've successfully synchronized w/ Jira (${ this.jiraHost }).`
+          );
+        } catch (error) {
+          this.$registry.get('logger').error(error.message);
 
-        this.$registry.get('notify')(
-          'TiTime - Jira Integration.',
-          `Failed to synchronized w/ Jira (${ this.jiraHost }). Error: ${ error.message }`
-        );
+          this.$registry.get('notify')(
+            'TiTime - Jira Integration.',
+            `Failed to synchronized w/ Jira (${ this.jiraHost }). Error: ${ error.message }`
+          );
+        }
       }
     },
-
     validUrl (val) {
       return validUrl.isUri(val);
     },

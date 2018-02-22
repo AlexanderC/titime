@@ -55,11 +55,12 @@ if (Env.isDebug()) {
 const createProviderSyncCommand = (providerName, createProvider) => async (...args) => {
   const provider = createProvider(...args);
 
-  if (!cron.exists('jira')) {
+  if (!cron.exists(providerName)) {
     cron.add(
-      'jira',
+      providerName,
       registry.config().get('remoteSyncCron'),
-      () => provider.synchronize().then(() => provider.report(registry.config().get('minLogTime'))),
+      () => provider.synchronize()
+        .then(() => provider.report(registry.config().get('minLogTime'))),
       true,
     );
   }
@@ -79,7 +80,7 @@ registry
     }
   })
   .register('synchronizeRedmine', createProviderSyncCommand(
-    'jira',
+    'redmine',
     (host, apiKey) => new RedmineProvider(db, { host, apiKey }),
   ))
   .register('synchronizeJira', createProviderSyncCommand(
