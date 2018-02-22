@@ -56,7 +56,7 @@ const createProviderSyncCommand = (providerName, createProvider) => async (...ar
   const provider = createProvider(...args);
 
   if (!cron.exists(providerName)) {
-    cron.add(
+    await cron.add(
       providerName,
       registry.config().get('remoteSyncCron'),
       () => provider.synchronize()

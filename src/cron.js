@@ -1,4 +1,3 @@
-import { CronJob } from 'cron';
 import Logger from './logger';
 
 export default class Cron {
@@ -18,36 +17,43 @@ export default class Cron {
     return this.jobs[name] || null;
   }
 
-  add(name, cronTime, job, start = false) {
+  async add(name, interval, job, start = false) {
     if (this.exists(name)) {
       throw new Error(`Cron job "${name}" already exists`);
     }
 
-    Logger.debug(`Add cron job "${name}" with pattern "${cronTime}"`);
+    Logger.debug(`Add cron job "${name}" with pattern "${interval}"`);
 
-    let running = false;
+    const instance = {
+      clock: null,
+      running() {
+        return !!this.clock;
+      },
+      async start() {
+        if (this.running()) {
+          return;
+        }
 
-    const onTick = () => {
-      if (running) {
-        return Promise.resolve();
-      }
+        this.clock = setInterval(async () => {
+          Logger.info(`Run "${name}" cron job`);
+          await job();
+        }, interval);
 
-      Logger.info(`Run "${name}" cron job`);
+        await job();
+      },
+      stop() {
+        if (!this.running()) {
+          return;
+        }
 
-      return job()
-        .then((result) => {
-          running = false;
-
-          return Promise.resolve(result);
-        })
-        .catch((error) => {
-          running = false;
-
-          return Promise.reject(error);
-        });
+        clearInterval(this.clock);
+        this.clock = null;
+      },
     };
 
-    const instance = new CronJob({ cronTime, onTick, start });
+    if (start) {
+      await instance.start();
+    }
 
     this.jobs[name] = instance;
 
@@ -60,7 +66,7 @@ export default class Cron {
     this.list().forEach((name) => {
       const job = this.get(name);
 
-      if (!job.running) {
+      if (!job.running()) {
         job.start();
       }
     });
@@ -74,7 +80,7 @@ export default class Cron {
     this.list().forEach((name) => {
       const job = this.get(name);
 
-      if (job.running) {
+      if (job.running()) {
         job.stop();
       }
     });
