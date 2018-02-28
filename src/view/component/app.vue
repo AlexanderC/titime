@@ -22,6 +22,16 @@
 
     <md-app-content>
       <Projects :tracking="tracking"></Projects>
+
+      <md-dialog-confirm
+        v-if="isIdle()"
+        md-active
+        md-title="You're idle."
+        :md-content="'Do you want us to keep idle time of <b>' + humanizedIdleTime() + '</b>?'"
+        md-confirm-text="Keep"
+        md-cancel-text="Discard"
+        @md-cancel="discardIdle"
+        @md-confirm="keepIdle" />
     </md-app-content>
   </md-app>
 </template>
@@ -68,25 +78,14 @@ export default {
       timer: 'N/A',
       project: false,
       state: {
-        idlePending: false,
-        pendingIdleTime: 0,
+        idleTime: 0,
+        idleStart: null,
       },
     };
   },
   created () {
     this.$ticker = setInterval(() => {
-      if (this.tracking) {
-        if (!this.startTime.isSame(moment(), 'day') && !this.idlePending) {
-          endTime = this.startTime.endOf('day');
-          this.logTimeSegment(endTime);
-          this.startTime = moment().startOf('day');
-
-          this.$registry.get('notify')(
-            'TiTime - Logged time.',
-            'We logged the time you\'ve spent yesterday. Start new timer for today...'
-          );
-        }
-        
+      if (this.tracking) {        
         this.timer = this._countdown();
         this.$registry.get('setBadge')(this.timer);
       }
@@ -104,48 +103,13 @@ export default {
 
     events.on('idle', (time) => {
       if (this.tracking) {
-        // Do not show more than 1 time
-        if (this.idlePending) {
-          this.pendingIdleTime += time;
-          return;
-        }
-
-        this.idlePending = true;
-
         time = Math.ceil(time); // round up!
 
-        const newStartTime = moment();
-        const endTime = moment.unix(moment().unix() - time);
-        const idleTime = this._humanize(time);
-
-        this.$registry.get('notify')(
-          'TiTime - You\'re idle!',
-          `Do you want us to keep the time you were idle? (${idleTime})`,
-          [ 'Keep', 'Discard' ],
-          (response) => {
-            if (response === 1) {
-              this.$registry.get('logger').info(`Discard ${time} seconds idle time spent on "${this.project.name}"`);
-
-              this.logTimeSegment(endTime);
-              this.startTime = newStartTime;
-
-              this.$registry.get('notify')(
-                'TiTime - Idle Time Discarded.',
-                `Idle time of ${idleTime} has been discarded.`
-              );
-            } else {
-              this.$registry.get('logger').info(`Keep ${time} seconds idle time spent on "${this.project.name}"`);
-            }
-
-            this.idlePending = false;
-
-            if (this.pendingIdleTime > 0) {
-              time = this.pendingIdleTime;
-              this.pendingIdleTime = 0;
-              events.emit('idle', time);
-            }
-          }
-        );
+        if (this.isIdle()) {
+          this.increaseIdle(time);
+        } else {
+          this.startIdle(time);
+        }
       }
     });
   },
@@ -153,7 +117,7 @@ export default {
     if (this.tracking) {
       this.logTimeSegment();
     }
-    
+
     if (this.$ticker) {
       clearInterval(this.$ticker);
       this.$ticker = undefined;
@@ -170,6 +134,45 @@ export default {
     },
   },
   methods: {
+    discardIdle() {
+      this.$registry.get('notify')(
+        'TiTime.',
+        `Idle time of ${this.humanizedIdleTime()} has been discarded.`
+      );
+
+      // log segment and reset timer
+      this.logTimeSegment(this.state.idleStart);
+      this.startTime = moment();
+
+      this.resetIdle();
+    },
+    keepIdle() {
+      this.$registry.get('notify')(
+        'TiTime',
+        `Keep idle time of ${this.humanizedIdleTime()}`
+      );
+
+      this.resetIdle();
+    },
+    increaseIdle(time) {
+      this.state.idleTime += time;
+    },
+    isIdle() {
+      return !!this.state.idleStart;
+    },
+    startIdle(time) {
+      this.$registry.get('notify')('TiTime', 'You\'re now idle');
+
+      this.state.idleTime += time;
+      this.state.idleStart = moment.unix(moment().unix() - time);
+    },
+    resetIdle() {
+      this.state.idleStart = null;
+      this.state.idleTime = 0;
+    },
+    humanizedIdleTime() {
+      return this._humanize(this.state.idleTime);
+    },
     _countdown () {
       const duration = moment.duration(moment().diff(this.startTime));
       const hours = Math.floor(duration.asHours()).toString().padStart(2, '0');
@@ -199,7 +202,7 @@ export default {
         const diff = end - start;
 
         this.$registry.get('logger')
-          .warn(`Attempt to log negative time segment of ${ diff } seconds for "${this.project.name}"`);
+          .warn(`Attempt to log zero or negative time segment of ${ diff } seconds for "${this.project.name}"`);
         return;
       }
 

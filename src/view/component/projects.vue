@@ -207,14 +207,14 @@ export default {
           this.refresh();
 
           this.$registry.get('notify')(
-            'TiTime - Redmine Integration.',
+            'TiTime',
             `We've successfully synchronized w/ Redmine (${ this.redmineHost }).`
           );
         } catch (error) {
           this.$registry.get('logger').error(error.message);
 
           this.$registry.get('notify')(
-            'TiTime - Redmine Integration.',
+            'TiTime',
             `Failed to synchronized w/ Redmine (${ this.redmineHost }). Error: ${ error.message }`
           );
         }
@@ -239,14 +239,14 @@ export default {
           this.refresh();
 
           this.$registry.get('notify')(
-            'TiTime - Jira Integration.',
+            'TiTime',
             `We've successfully synchronized w/ Jira (${ this.jiraHost }).`
           );
         } catch (error) {
           this.$registry.get('logger').error(error.message);
 
           this.$registry.get('notify')(
-            'TiTime - Jira Integration.',
+            'TiTime.',
             `Failed to synchronized w/ Jira (${ this.jiraHost }). Error: ${ error.message }`
           );
         }
