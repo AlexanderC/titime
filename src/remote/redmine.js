@@ -1,4 +1,4 @@
-import Redmine from 'node-redmine';
+import Redmine from 'node-redmine-fake-ua';
 import path from 'path';
 import pify from 'pify';
 import moment from 'moment';
@@ -11,7 +11,7 @@ export default class RedmineProvider extends AbstractProvider {
 
     return new Redmine(
       this.options.host,
-      { apiKey: this.options.apiKey },
+      { apiKey: this.options.apiKey, fakeUA: true },
     );
   }
 

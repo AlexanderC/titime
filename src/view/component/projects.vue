@@ -174,7 +174,8 @@ export default {
       return this.$electron.remote.getGlobal('$registry');
     },
     sortedProjects () {
-      return this.projects.sort(p => p.isArchived);
+      return this.projects.sort()
+        .sort((a, b) => (a.isArchived && b.isArchived ? 0 : a.isArchived ? 1 : b.isArchived ? -1 : 0));
     },
   },
   created () {
